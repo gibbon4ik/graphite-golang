@@ -125,7 +125,6 @@ func (graphite *Graphite) sendMetrics(metrics []Metric) error {
 			str := fmt.Sprintf("%s %s %d\n", metric_name, metric.Value, metric.Timestamp)
 			if len(str)+buf.Len() > maxDataSize {
 			}
-			fmt.Fprintf(graphite.conn)
 			_, err := graphite.conn.Write(buf.Bytes())
 			if err != nil {
 				return err

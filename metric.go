@@ -19,6 +19,6 @@ func NewMetric(name, value string, timestamp int64) Metric {
 	}
 }
 
-func (metric *Metric) String() string {
+func (metric Metric) String() string {
 	return fmt.Sprintf("%s %s %d", metric.Name, metric.Value, metric.Timestamp)
 }
