@@ -11,19 +11,22 @@ import (
 // Graphite is a struct that defines the relevant properties of a graphite
 // connection
 type Graphite struct {
-	Host     string
-	Port     int
-	Protocol string
-	Timeout  time.Duration
-	Prefix   string
-	conn     net.Conn
-	nop      bool
+	Host       string
+	Port       int
+	Protocol   string
+	Timeout    time.Duration
+	Prefix     string
+	conn       net.Conn
+	nop        bool
 	DisableLog bool
 }
 
 // defaultTimeout is the default number of seconds that we're willing to wait
 // before forcing the connection establishment to fail
 const defaultTimeout = 5
+
+/* ether mtu - ip header - udp header */
+const maxDataSize = 1500 - 20 - 8
 
 // IsNop is a getter for *graphite.Graphite.nop
 func (graphite *Graphite) IsNop() bool {
@@ -119,12 +122,19 @@ func (graphite *Graphite) sendMetrics(metrics []Metric) error {
 			metric_name = metric.Name
 		}
 		if graphite.Protocol == "udp" {
-			fmt.Fprintf(graphite.conn, "%s %s %d\n", metric_name, metric.Value, metric.Timestamp)
-			continue
+			str := fmt.Sprintf("%s %s %d\n", metric_name, metric.Value, metric.Timestamp)
+			if len(str)+buf.Len() > maxDataSize {
+			}
+			fmt.Fprintf(graphite.conn)
+			_, err := graphite.conn.Write(buf.Bytes())
+			if err != nil {
+				return err
+			}
+			buf.Truncate(0)
 		}
 		buf.WriteString(fmt.Sprintf("%s %s %d\n", metric_name, metric.Value, metric.Timestamp))
 	}
-	if graphite.Protocol == "tcp" {
+	if buf.Len() > 0 && (graphite.Protocol == "tcp" || graphite.Protocol == "udp") {
 		_, err := graphite.conn.Write(buf.Bytes())
 		//fmt.Print("Sent msg:", buf.String(), "'")
 		if err != nil {

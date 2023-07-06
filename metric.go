@@ -2,7 +2,6 @@ package graphite
 
 import (
 	"fmt"
-	"time"
 )
 
 // Metric is a struct that defines the relevant properties of a graphite metric
@@ -20,11 +19,6 @@ func NewMetric(name, value string, timestamp int64) Metric {
 	}
 }
 
-func (metric Metric) String() string {
-	return fmt.Sprintf(
-		"%s %s %s",
-		metric.Name,
-		metric.Value,
-		time.Unix(metric.Timestamp, 0).Format("2006-01-02 15:04:05"),
-	)
+func (metric *Metric) String() string {
+	return fmt.Sprintf("%s %s %d", metric.Name, metric.Value, metric.Timestamp)
 }
