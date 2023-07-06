@@ -121,17 +121,17 @@ func (graphite *Graphite) sendMetrics(metrics []Metric) error {
 		} else {
 			metric_name = metric.Name
 		}
+		str := fmt.Sprintf("%s %s %d\n", metric_name, metric.Value, metric.Timestamp)
 		if graphite.Protocol == "udp" {
-			str := fmt.Sprintf("%s %s %d\n", metric_name, metric.Value, metric.Timestamp)
 			if len(str)+buf.Len() > maxDataSize {
+				_, err := graphite.conn.Write(buf.Bytes())
+				if err != nil {
+					return err
+				}
+				buf.Truncate(0)
 			}
-			_, err := graphite.conn.Write(buf.Bytes())
-			if err != nil {
-				return err
-			}
-			buf.Truncate(0)
 		}
-		buf.WriteString(fmt.Sprintf("%s %s %d\n", metric_name, metric.Value, metric.Timestamp))
+		buf.WriteString(str)
 	}
 	if buf.Len() > 0 && (graphite.Protocol == "tcp" || graphite.Protocol == "udp") {
 		_, err := graphite.conn.Write(buf.Bytes())
